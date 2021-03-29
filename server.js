@@ -4,9 +4,11 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+// const superagent = require('superagent');
 
 const PORT = process.env.PORT;
 const cityApp = express();
+const GEO_CODE_API_KEY = process.env.GEO_CODE_API_KEY;
 cityApp.use(cors());
 
 // Path creation
@@ -38,13 +40,14 @@ function handleWeatherReq(req, res) {
   const searchQuery = req.query;
   const weatherRawData = require('./data/weather.json');
   const weatherArr = weatherRawData.data;
-  weatherArr.forEach((element) => {
+  weatherArr.map( element => {
     let newWeatherForcast = new Weather(
       element.weather.description,
       element.valid_date
     );
     dailyWeather.push(newWeatherForcast);
   });
+
   res.send(dailyWeather);
   }
   catch (error) {
