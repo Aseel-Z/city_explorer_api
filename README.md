@@ -37,7 +37,7 @@ Number and name of feature: Repository Set Up
 
 Estimate of time needed to complete: 30 mins
 
-Start time: 3:00
+Start time: 4:40
 
 Finish time: 3:30
 
