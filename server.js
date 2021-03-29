@@ -10,7 +10,7 @@ const cityApp = express();
 cityApp.use(cors());
 
 // Path creation
-cityApp.get('/loaction', handleLocationReq);
+cityApp.get('/location', handleLocationReq);
 cityApp.get('/weather', handleWeatherReq);
 
 function handleLocationReq(req, res) {
@@ -44,8 +44,8 @@ function handleWeatherReq(req, res) {
       element.valid_date
     );
     dailyWeather.push(newWeatherForcast);
-    res.send(dailyWeather);
   });
+  res.send(dailyWeather);
   }
   catch (error) {
  res.status(500).send('internal server error occured')
