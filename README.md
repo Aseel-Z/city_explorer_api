@@ -22,6 +22,8 @@ a stand-alone back end application that would give the user the weather informat
 -->
 ### Time Estimate 
 
+---Lab06---
+
 Number and name of feature: Repository Set Up
 
 Estimate of time needed to complete: 30 mins
@@ -33,23 +35,65 @@ Finish time: 3:30
 Actual time needed to complete: 30 mins
 
 
-Number and name of feature: Repository Set Up
+Number and name of feature: location
+
+Estimate of time needed to complete: 1 hr 
+
+Start time: 4:00
+
+Finish time: 6:00
+
+Actual time needed to complete: 2 hr 
+
+
+Number and name of feature: weather
+
+Estimate of time needed to complete: 1 hr
+
+Start time: 6:00
+
+Finish time: 8:30
+
+Actual time needed to complete: 2 hr 
+
+---La07---
+
+Number and name of feature: Data formatting
+
+Estimate of time needed to complete: 20 mins
+
+Start time: 4:00
+
+Finish time: 4:20
+
+Actual time needed to complete: 25 mins
+--- ---
+Number and name of feature:  Location
 
 Estimate of time needed to complete: 30 mins
 
-Start time: 4:40
+Start time: 4:30
 
-Finish time: 3:30
+Finish time: 5:00
 
 Actual time needed to complete: 30 mins
-
-
-Number and name of feature: Repository Set Up
+--- ---
+Number and name of feature:  Weather
 
 Estimate of time needed to complete: 30 mins
 
-Start time: 3:00
+Start time: 4:30
 
-Finish time: 3:30
+Finish time: 5:00
+
+Actual time needed to complete: 30 mins
+--- ---
+Number and name of feature: Parks
+
+Estimate of time needed to complete: 30 mins
+
+Start time: 4:30
+
+Finish time: 5:00
 
 Actual time needed to complete: 30 mins
