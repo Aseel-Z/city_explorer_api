@@ -14,17 +14,18 @@ cityApp.get('/loaction', handleLocationReq);
 cityApp.get('/weather', handleWeatherReq);
 
 function handleLocationReq(req, res) {
-  let newLocation;
-  const searchQuery = req.query;
-  const locationData = require('data/location.json');
-  console.log(locationData);
-  if (locationData.includes(searchQuery)) {
-    newLocation = new Location(locationData[0]);
+  const searchQuery = req.query.city;
+  if (!searchQuery) {
+    res.status(500).send('Sorry, something went wrong')
   }
- newLocation = new Error('Sorry, something went wrong')
+  const locationData = require('./data/location.json');
+  const  newLocation = new Location(searchQuery ,locationData[0]);
+  // if (locationData.includes(searchQuery)) {
+  // }
+  // newLocation = new Error('Sorry, something went wrong');
   res.send(newLocation);
 }
-function Location(dataLocation) {
+function Location(searchQuery, dataLocation) {
   this.search_query = searchQuery;
   this.formatted_query = dataLocation.display_name;
   this.longitude = dataLocation.lon;
@@ -32,19 +33,29 @@ function Location(dataLocation) {
 }
 
 function handleWeatherReq(req, res) {
-  let dailyWeather = [];
+  try {
+    let dailyWeather = [];
   const searchQuery = req.query;
-  const weatherData = require('data/weather.json');
-  weatherData.forEach((element) => {
-    let newWeatherForcast = new Weather(element);
+  const weatherRawData = require('./data/weather.json');
+  const weatherArr = weatherRawData.data;
+  weatherArr.forEach((element) => {
+    let newWeatherForcast = new Weather(
+      element.weather.description,
+      element.valid_date
+    );
     dailyWeather.push(newWeatherForcast);
     res.send(dailyWeather);
   });
+  }
+  catch (error) {
+ res.status(500).send('internal server error occured')
+  }
+
 }
 
-function Weather(weatherData) {
-  this.forecast = weatherData.description;
-  this.time = weatherData.datetime;
+function Weather(weatherInfo, date) {
+  this.forecast = weatherInfo;
+  this.time = date;
 }
 
 cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
