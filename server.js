@@ -77,7 +77,7 @@ function handleWeatherReq(req, res) {
 }
 
 function Weather(weather) {
-  this.forecast =  weather.description,;
+  this.forecast =  weather.description,
   this.time = weather.valid_date
 }
 

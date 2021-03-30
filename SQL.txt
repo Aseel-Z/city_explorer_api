@@ -1,0 +1,8 @@
+How to create my own dataBase?
+
+# on the terminal 
+1. psql
+2. CREATE DATABASE (database name)
+
+
+## Notes 
