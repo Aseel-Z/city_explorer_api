@@ -18,7 +18,7 @@ cityApp.get('/location', handleLocationReq);
 cityApp.get('/weather', handleWeatherReq);
 cityApp.get('/parks', handleParksReq);
 // error handler for all types of errors
-cityApp.use('*', allError);
+
 
 function handleLocationReq(req, res) {
   const url = `https://us1.locationiq.com/v1/search.php`;
@@ -121,3 +121,5 @@ cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
 function allError(req, res) {
   res.status(500).send('Sorry, something went wrong');
 }
+
+cityApp.use('*', allError);
