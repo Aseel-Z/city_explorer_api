@@ -72,11 +72,11 @@ Number and name of feature:  Location
 
 Estimate of time needed to complete: 30 mins
 
-Start time: 4:30
+Start time: 4:40
 
-Finish time: 5:00
+Finish time: 5:40
 
-Actual time needed to complete: 30 mins
+Actual time needed to complete: 1 hr
 --- ---
 Number and name of feature:  Weather
 
