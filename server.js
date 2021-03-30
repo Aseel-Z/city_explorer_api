@@ -50,32 +50,25 @@ function Location(searchQuery, dataLocation) {
 }
 
 function handleWeatherReq(req, res) {
-  // handleLocationReq(req, res);
   try {
-    let dailyWeather = [];
-    const searchQuery = req.query.city;
+    const searchQuery = req.query;
     if (!searchQuery) {
       res.status('500').send('Sorry, something went wrong');
     }
     const url = `https://api.weatherbit.io/v2.0/forecast/daily`;
     const weatherQueryPara = {
       key: WEATHER_CODE_API_KEY,
-      lat: newLocation.longitude,
-      lon: newLocation.latitude,
+      lat: searchQuery.longitude,
+      lon: searchQuery.latitude,
       format: 'json',
     };
-    superagent
+    superAgent
       .get(url)
       .query(weatherQueryPara)
       .then((weatherData) => {
-        weatherData.map((element) => {
-          let newWeatherForcast = new Weather(
-            element.weather.description,
-            element.valid_date
-          );
-          dailyWeather.push(newWeatherForcast);
+       const dailyWeather= weatherData.body.data.map((weather) => {
+         return new Weather(weather);
         });
-
         res.send(dailyWeather);
       });
   } catch (error) {
@@ -83,39 +76,30 @@ function handleWeatherReq(req, res) {
   }
 }
 
-function Weather(weatherInfo, date) {
-  this.forecast = weatherInfo;
-  this.time = date;
+function Weather(weather) {
+  this.forecast =  weather.description,;
+  this.time = weather.valid_date
 }
 
 function handleParksReq(params) {
   try {
-    let parks = [];
-    const searchQuery = req.query.city;
+    const searchQuery = req.query.search_query;
     if (!searchQuery) {
       res.status('500').send('Sorry, something went wrong');
     }
     const url = `https://developer.nps.gov/api/v1/parks`
     const parkQueryPara = {
       key: PARK_CODE_API_KEY,
-      q : searchQuery + " -H "
-     application:'json'
+      q : searchQuery,
+      limit:'10'
     };
     superagent
       .get(url)
       .query(parkQueryPara)
       .then((parkData) => {
-        parkData.map((element) => {
-          let newPark = new Park(
-            element.name,
-            element.address,
-            element.fees,
-            element.description,
-            element.url,
-          );
-          parks.push(newPark);
+       const parks = parkData.map((park) => {
+        return new Park(park);
         });
-
         res.send(parks);
       });
   } catch (error) {
@@ -123,17 +107,13 @@ function handleParksReq(params) {
   }
 }   
 
-function Park() {
-  this.
-  this.
+function Park(parkData) {
+  this.name= parkData.name;
+  this.description = parkData.description;
+  this.address = `${parkData.addresses[0].line1}${parkData.addresses[0].city}${parkData.addresses[0].stateCode}${parkData.addresses[0].postalCode}`
+  this.fees = parkData.fees[0];
+  this.url = parkData.url;
 }
-
-
-
-
-
-
-
 
 
 cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
