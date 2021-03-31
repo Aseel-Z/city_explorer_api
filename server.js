@@ -4,10 +4,14 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const pg = require('pg');
 const superagent = require('superagent');
 
-const PORT = process.env.PORT;
+const DATABASE_URL = process.env.DATABASE_URL;
 const cityApp = express();
+
+const client = new pg.Client(DATABASE_URL);
+
 const GEO_CODE_API_KEY = process.env.GEO_CODE_API_KEY;
 const WEATHER_CODE_API_KEY = process.env.WEATHER_CODE_API_KEY;
 const PARK_CODE_API_KEY = process.env.PARK_CODE_API_KEY;
