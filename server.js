@@ -11,6 +11,7 @@ const DATABASE_URL = process.env.DATABASE_URL;
 const cityApp = express();
 
 const client = new pg.Client(DATABASE_URL);
+client.connect();
 
 const GEO_CODE_API_KEY = process.env.GEO_CODE_API_KEY;
 const WEATHER_CODE_API_KEY = process.env.WEATHER_CODE_API_KEY;
@@ -24,8 +25,32 @@ cityApp.get('/parks', handleParksReq);
 // error handler for all types of errors
 
 
+// function handleLocationReq(req, res) {
+//   const url = `https://us1.locationiq.com/v1/search.php`;
+//   const searchQuery = req.query.city;
+//   const locationQueryPara = {
+//     key: GEO_CODE_API_KEY,
+//     city: searchQuery,
+//     format: 'json',
+//   };
+//   if (!searchQuery) {
+//     res.status(500).send('Sorry, something went wrong');
+//   }
+//   superagent
+//     .get(url)
+//     .query(locationQueryPara)
+//     .then((locationData) => {
+//       const newLocation = new Location(searchQuery, locationData.body[0]);
+//       res.status(200).send(newLocation);
+//     })
+//     .catch((error) => {
+//       res.status(500).send('Sorry, something went wrong');
+//     });
+// }
+
 function handleLocationReq(req, res) {
-  const url = `https://us1.locationiq.com/v1/search.php`;
+  const sqlQuery = `INSERT INTO locations(search_query, formatted_query, longitude, latitude) VALUES( $1, $2, $3, $4)`;
+  const values = [this.search_query, this.formatted_query, this.longitude, this.latitude ]
   const searchQuery = req.query.city;
   const locationQueryPara = {
     key: GEO_CODE_API_KEY,
@@ -47,6 +72,7 @@ function handleLocationReq(req, res) {
     });
 }
 function Location(searchQuery, dataLocation) {
+  this.tableName = 'locations'
   this.search_query = searchQuery;
   this.formatted_query = dataLocation.display_name;
   this.longitude = dataLocation.lon;
