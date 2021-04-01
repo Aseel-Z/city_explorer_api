@@ -20,7 +20,6 @@ const WEATHER_CODE_API_KEY = process.env.WEATHER_CODE_API_KEY;
 const PARK_CODE_API_KEY = process.env.PARK_CODE_API_KEY;
 
 // express wireframe - app launch
-
 const cityApp = express();
 cityApp.use(cors());
 
@@ -41,15 +40,12 @@ if (ENV === 'DEV') {
 // connect app to the postgres database
 client.connect();
 
-
 // Path creation
 cityApp.get('/location', handleLocationReq);
 cityApp.get('/weather', handleWeatherReq);
 cityApp.get('/parks', handleParksReq);
 
-
 // Location Request Handler Function + Constructor Function
-
 function Location(searchQuery, dataLocation) {
   this.tableName = 'locations'
   this.search_query = searchQuery;
@@ -110,89 +106,88 @@ function handleLocationReq(req, res) {
   }
 }
 
-  // Weather Request Handler Function + Constructor Function 
-  function handleWeatherReq(req, res) {
-    try {
-      const searchQuery = req.query.city;
-      if (!searchQuery) {
-        res.status('500').send('Sorry, something went wrong');
-      }
-      const url = `https://api.weatherbit.io/v2.0/forecast/daily`;
-      const weatherQueryPara = {
-        key: WEATHER_CODE_API_KEY,
-        lat: searchQuery.longitude,
-        lon: searchQuery.latitude,
-        format: 'json',
-      };
-      superAgent
-        .get(url)
-        .query(weatherQueryPara)
-        .then((weatherData) => {
-          const dailyWeather = weatherData.body.data.map((weather) => {
-            return new Weather(weather);
-          });
-          res.send(dailyWeather);
-        });
-    } catch (error) {
-      res.status(500).send('internal server error occured');
+// Weather Request Handler Function + Constructor Function 
+
+function Weather(data) {
+  this.forecast = data.weather.description;
+  this.time = data.valid_date
+}
+
+function handleWeatherReq(req, res) {
+  try {
+    const searchQueryLat = req.query.lat;
+    const searchQueryLon = req.query.lon;
+    if (!searchQueryLat || !searchQueryLon) {
+      res.status('500').send('Sorry, something went wrong');
     }
-  }
+    const url = `https://api.weatherbit.io/v2.0/forecast/daily`;
+    const weatherQueryPara = {
+      key: WEATHER_CODE_API_KEY,
+      lat: searchQueryLat,
+      lon: searchQueryLon,
+      format: 'json',
+    };
 
-  function Weather(weather) {
-    this.forecast = weather.description;
-    this.time = weather.valid_date
-  }
-
-  // Parks Request Handler Function + Constructor Function 
-
-  function handleParksReq(req, res) {
-    try {
-      const searchQuery = req.query.city;
-      if (!searchQuery) {
-        res.status('500').send('Sorry, something went wrong');
-      }
-      const url = `https://developer.nps.gov/api/v1/parks`
-      const parkQueryPara = {
-        key: PARK_CODE_API_KEY,
-        q: searchQuery,
-        limit: '10'
-      };
-      superagent
-        .get(url)
-        .query(parkQueryPara)
-        .then((parkData) => {
-          const parks = parkData.map((park) => {
-            return new Park(park);
-          });
-          res.send(parks);
+    superagent
+      .get(url)
+      .query(weatherQueryPara)
+      .then((weatherData) => {
+        const dailyWeather = weatherData.body.data.map((weather) => {
+          return new Weather(weather);
         });
-    } catch (error) {
-      res.status(500).send('internal server error occured');
+        res.status(200).send(dailyWeather.slice(0, 9));
+      });
+
+  } catch (error) {
+    res.status(500).send('internal weather server error occured');
+  }
+}
+
+// Parks Request Handler Function + Constructor Function
+
+function Park(parkData) {
+  this.name = parkData.fullName;
+  this.description = parkData.description;
+  this.address = `${parkData.addresses[0].line1}${parkData.addresses[0].city}${parkData.addresses[0].stateCode}${parkData.addresses[0].postalCode}`
+  this.fees = parkData.fees[0] || '0.00';
+  this.url = parkData.url;
+}
+
+function handleParksReq(req, res) {
+  try {
+    const searchQuery = req.query.location;
+    if (!searchQuery) {
+      res.status('500').send('Sorry, something went wrong');
     }
+    const url = `https://developer.nps.gov/api/v1/parks`
+    const parkQueryPara = {
+      api_key: PARK_CODE_API_KEY,
+      location: searchQuery,
+      limit: '10'
+    };
+    superagent
+      .get(url)
+      .query(parkQueryPara)
+      .then((parkData) => {
+        const parks = parkData.body.data.map((park) => {
+          return new Park(park);
+        });
+        res.status(200).send(parks);
+      });
+  } catch (error) {
+    res.status(500).send('internal parks server error occured');
   }
+}
 
-  function Park(parkData) {
-    this.name = parkData.name;
-    this.description = parkData.description;
-    this.address = `${parkData.addresses[0].line1}${parkData.addresses[0].city}${parkData.addresses[0].stateCode}${parkData.addresses[0].postalCode}`
-    this.fees = parkData.fees[0];
-    this.url = parkData.url;
-  }
+// app listener
+cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
 
 
-  // app listener
-  cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
+// General/All Error Handler
+function allError(req, res) {
+  res.status(500).send('Sorry, something went wrong');
+}
 
-
-  // General/All Error Handler
-  function allError(req, res) {
-    res.status(500).send('Sorry, something went wrong');
-  }
-
-  cityApp.use('*', allError);
-
-
-// try catch - success - error
-// if multipyte cases
+cityApp.use('*', allError);
 
 
