@@ -14,13 +14,17 @@ const client = new pg.Client(DATABASE_URL);
 client.connect();
 
 const GEO_CODE_API_KEY = process.env.GEO_CODE_API_KEY;
+const MOVIE_API_KEY =  process.env.MOVIE_API_KEY;
+const YELP_API_KEY = process.env.YELP_API_KEY;
 cityApp.use(cors());
 
 // Path creation
 cityApp.get('/location', handleLocationReq);
+cityApp.get('/movies', handleMoviesReq);
+cityApp.get('/yelpmovies', handleYelpReq);
+
 
 function handleLocationReq(req, res) {
-  
   // client input 
   const searchQuery = req.query.city;
 
@@ -69,6 +73,65 @@ function Location(searchQuery, dataLocation) {
   this.longitude = dataLocation.lon;
   this.latitude = dataLocation.lat;
 }
+  
+
+  
+function handleMoviesReq(req,res) {
+  const searchQuery = req.query.city;
+  if (!searchQuery) {
+    res.status(500).send('Sorry, something went wrong')
+  }
+  const url = `https://api.themoviedb.org/3/search/movie?`
+  const movieQueryPara {
+    query: searchQuery,
+    key: MOVIE_API_KEY,
+    // language:
+    // region:
+  }
+  superagent.get(url).query(movieQueryPara).then((movieData) => {
+    const newMovie = new Movie(searchQuery, movieData);
+    res.status(200).send(newMovie);
+  })
+}
+function Movie(searchQuery,dataMovie) {
+  this.title = dataMovie.results[0].title ;
+  this.overview = dataMovie.results[0].overview;
+  this.average_votes = dataMovie.results[0].average_votes;
+  this.total_votes = dataMovie.results[0].total_votes;
+  this.image_url = dataMovie.results[0].image_url;
+  this.popularity = dataMovie.results[0].popularity;
+  this.released_on = dataMovie.results[0].released_on;
+}
+
+
+function handleYelpReq(req,res) {
+  const searchQuery = req.query.city;
+  if (!searchQuery) {
+    res.status(500).send('Sorry, something went wrong')
+  }
+  const url = `GET https://api.yelp.com/v3/businesses/search`,
+  const restaurantQueryPara {
+  categories:'restaurants',
+  location: searchQuery
+  }
+  // API
+  superagent
+  .get(url).query(restaurantQueryPara).set('Authorization':'Bearer ',`${YELP_API_KEY}`).then((yelpData) => {
+    const newYelp = new Yelp(searchQuery, yelpData);
+    res.status(200).send(newYelp);
+  })
+  .catch((error) => {
+    res.status(500).send('Sorry, something went wrong');
+  });
+}
+ 
+function Yelp(searchQuery,dataYelp) {
+  this.name = ;
+  this.image_url =;
+  this.price =;
+  this.rating = ;
+  this.url = ;
+} 
 
 cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
 
