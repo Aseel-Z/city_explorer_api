@@ -40,7 +40,7 @@ function handleLocationReq(req, res) {
   // then check if it is in the database (client that is connected) and pass the query (sql)
   client.query(sqlQuery,values).then( table => {
    if (table.rows.length === 0) {
-    res.status(500).send('Sorry, no Data was found')
+    throw error;
    }
   res.status(200).json(table.row[0])}).
   catch((error) => {
@@ -82,7 +82,7 @@ function handleMoviesReq(req,res) {
     res.status(500).send('Sorry, something went wrong')
   }
   const url = `https://api.themoviedb.org/3/search/movie?`
-  const movieQueryPara {
+  const movieQueryPara = {
     query: searchQuery,
     key: MOVIE_API_KEY,
     // language:
@@ -109,14 +109,14 @@ function handleYelpReq(req,res) {
   if (!searchQuery) {
     res.status(500).send('Sorry, something went wrong')
   }
-  const url = `GET https://api.yelp.com/v3/businesses/search`,
-  const restaurantQueryPara {
+  const url = `https://api.yelp.com/v3/businesses/search`,
+  const restaurantQueryPara ={
   categories:'restaurants',
   location: searchQuery
   }
   // API
   superagent
-  .get(url).query(restaurantQueryPara).set('Authorization':'Bearer ',`${YELP_API_KEY}`).then((yelpData) => {
+  .get(url).query(restaurantQueryPara).set(`Authorization`,`Bearer ${YELP_API_KEY}`).then((yelpData) => {
     const newYelp = new Yelp(searchQuery, yelpData);
     res.status(200).send(newYelp);
   })
