@@ -1,7 +1,7 @@
 'use strict';
 
 require('dotenv').config();
-
+const PORT = process.env.PORT || 3000
 const express = require('express');
 const cors = require('cors');
 const pg = require('pg');
@@ -19,19 +19,10 @@ cityApp.use(cors());
 // Path creation
 cityApp.get('/location', handleLocationReq);
 
-
-client.query(sqlQuery,values)
-
 function handleLocationReq(req, res) {
-
+  
   // client input 
   const searchQuery = req.query.city;
-  // URL 
-  const locationQueryPara = {
-    key: GEO_CODE_API_KEY,
-    city: searchQuery,
-    format: 'json',
-  };
 
   // error message if there is no input
   if (!searchQuery) {
@@ -43,26 +34,34 @@ function handleLocationReq(req, res) {
   const sqlQuery = `SELECT * FROM locations WHERE search_query=$1`
 
   // then check if it is in the database (client that is connected) and pass the query (sql)
-  client.query(sqlQuery,values).then(
-
-  )
-
-  if 
-  const sqlQuery = `INSERT INTO locations(search_query, formatted_query, longitude, latitude) VALUES( $1, $2, $3, $4)`;
-  const values = [newLocation.search_query, newLocation.formatted_query, newLocation.longitude, newLocation.latitude ]
-
-
+  client.query(sqlQuery,values).then( table => {
+   if (table.rows.length === 0) {
+    res.status(500).send('Sorry, no Data was found')
+   }
+  res.status(200).json(table.row[0])}).
+  catch((error) => {
+    // URL API
+    const url = `https://us1.locationiq.com/v1/search.php` 
+    const locationQueryPara = {
+      key: GEO_CODE_API_KEY,
+      city: searchQuery,
+      format: 'json',
+    };
   superagent
     .get(url)
     .query(locationQueryPara)
     .then((locationData) => {
-      const  = new Location(searchQuery, locationData.body[0]);
+      const newLocation = new Location(searchQuery, locationData.body[0]);
+      // send data sent through API to database
+      const sqlQuery = `INSERT INTO locations(search_query, formatted_query, longitude, latitude) VALUES( $1, $2, $3, $4)`;
+      const values = [newLocation.search_query, newLocation.formatted_query, newLocation.longitude, newLocation.latitude ];
+      client.query(sqlQuery,values);    
       res.status(200).send(newLocation);
     })
-    .catch((error) => {
-      res.status(500).send('Sorry, something went wrong');
-    });
-}
+    .catch((error) =>
+      res.status(500).send('Sorry, something went wrong'))
+})}
+
 function Location(searchQuery, dataLocation) {
   this.tableName = 'locations'
   this.search_query = searchQuery;
@@ -70,8 +69,6 @@ function Location(searchQuery, dataLocation) {
   this.longitude = dataLocation.lon;
   this.latitude = dataLocation.lat;
 }
-
-
 
 cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
 
@@ -82,6 +79,3 @@ function allError(req, res) {
 // error handler for all types of errors
 cityApp.use('*', allError);
 
-
-// when searchquery is entered we either get the data from an API request or from the database created (cityDB)
-// response will be sent    
