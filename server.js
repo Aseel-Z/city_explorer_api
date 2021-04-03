@@ -18,7 +18,7 @@ const GEO_CODE_API_KEY = process.env.GEO_CODE_API_KEY;
 const DATABASE_URL = process.env.DATABASE_URL;
 const WEATHER_CODE_API_KEY = process.env.WEATHER_CODE_API_KEY;
 const PARK_CODE_API_KEY = process.env.PARK_CODE_API_KEY;
-const MOVIE_API_KEY =  process.env.MOVIE_API_KEY;
+const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 const YELP_API_KEY = process.env.YELP_API_KEY;
 
 // express wireframe - app launch
@@ -43,20 +43,20 @@ if (ENV === 'DEV') {
 client.connect();
 
 // Path creation
-// cityApp.get('/location', handleLocationReq);
+cityApp.get('/location', handleLocationReq);
 cityApp.get('/weather', handleWeatherReq);
 cityApp.get('/parks', handleParksReq);
 cityApp.get('/movies', handleMoviesReq);
-// cityApp.get('/yelpmovies', handleYelpReq);
+cityApp.get('/yelp', handleYelpReq);
 
 // // Location Request Handler Function + Constructor Function
-// function Location(searchQuery, dataLocation) {
-//   this.tableName = 'locations'
-//   this.search_query = searchQuery;
-//   this.formatted_query = dataLocation.display_name;
-//   this.longitude = dataLocation.lon;
-//   this.latitude = dataLocation.lat;
-// }
+function Location(searchQuery, dataLocation) {
+  this.tableName = 'locations'
+  this.search_query = searchQuery;
+  this.formatted_query = dataLocation.display_name;
+  this.longitude = dataLocation.lon;
+  this.latitude = dataLocation.lat;
+}
 
 // function getDataFromAPI() {
 //   const url = `https://us1.locationiq.com/v1/search.php`;
@@ -79,36 +79,50 @@ cityApp.get('/movies', handleMoviesReq);
 // };
 
 
-// function handleLocationReq(req, res) {
-//   try {
-//     // client input 
-//     const searchQuery = req.query.city;
+function handleLocationReq(req, res) {
+  try {
+    const searchQuery = req.query.city;
+    if (!searchQuery) {
+      res.status(500).send('Sorry, something went wrong');
+    };
 
-//     // error message if there is no input
-//     if (!searchQuery) {
-//       res.status(500).send('Sorry, something went wrong');
-//     };
+    // if there is input get the data from the database in it is already there or get it from API and then insert it into database
+    // get the data from database where the value
 
-//     // if there is input get the data from the database in it is already there or get it from API and then insert it into database
-//     // get the data from database where the value
+    const values = [searchQuery]
+    const sqlQuery = `SELECT * FROM locations WHERE search_query=$1`
 
-//     const values = [searchQuery]
-//     const sqlQuery = `SELECT * FROM locations WHERE search_query=$1`
+    // then check if it is in the database (client that is connected) and pass the query (sql)
+    client.query(sqlQuery, values).then(tableResult => {
 
-//     // then check if it is in the database (client that is connected) and pass the query (sql)
-//     client.query(sqlQuery, values).then(tableResult => {
+      if (tableResult.rows.length === 0) {
+        const url = `https://us1.locationiq.com/v1/search.php`;
+        const locationQueryPara = {
+          key: GEO_CODE_API_KEY,
+          city: searchQuery,
+          format: 'json',
+        };
+        superagent
+          .get(url)
+          .query(locationQueryPara)
+          .then((locationData) => {
+            const newLocation = new Location(searchQuery, locationData.body[0]);
+            // send data sent through API to database
+            const sqlQuery = `INSERT INTO locations(search_query, formatted_query, longitude, latitude) VALUES( $1, $2, $3, $4)`;
+            const values = [newLocation.search_query, newLocation.formatted_query, newLocation.longitude, newLocation.latitude];
+            client.query(sqlQuery, values);
+            res.status(200).send(newLocation);
+          })
+      } else {
+        res.status(200).json(tableResult.row[0])
+      }
+    })
+  }
+  catch (error) {
+    res.status(500).send('Sorry, something went wrong')
+  }
+}
 
-//       if (tableResult.rows.length === 0) {
-//         getDataFromAPI();
-//       } else {
-//         res.status(200).json(table.row[0])
-//       }
-//     })
-//   }
-//   catch (error) {
-//     res.status(500).send('Sorry, something went wrong')
-//   }
-// }
 
 // Weather Request Handler Function + Constructor Function 
 
@@ -186,7 +200,7 @@ function handleParksReq(req, res) {
 // Movies Request Handler Function + Constructor Function
 
 function Movie(dataMovie) {
-  this.title = dataMovie.title ;
+  this.title = dataMovie.title;
   this.overview = dataMovie.overview;
   this.average_votes = dataMovie.vote_average;
   this.total_votes = dataMovie.vote_count;
@@ -194,60 +208,95 @@ function Movie(dataMovie) {
   this.popularity = dataMovie.popularity;
   this.released_on = dataMovie.release_date;
 }
-function handleMoviesReq(req,res) {
-  const searchQuery = req.query;
-  if (!searchQuery) {
-    res.status(500).send('Sorry, something went wrong')
-  }
-  const url = `https://api.themoviedb.org/3/search/movie`
-  const movieQueryPara = {
-    query: searchQuery,
-    api_key: MOVIE_API_KEY,
-  }
-  superagent.get(url).query(movieQueryPara).then((movieData) => {
-    const moviesList = movieData.results.map((movie) => {
-      new Movie(moviesList.slice(0,21));
+function handleMoviesReq(req, res) {
+  try {
+    const searchQuery = req.query.country;
+    if (!searchQuery) {
+      res.status(500).send('Sorry, AAAsomething went wrong')
+    }
+    const url = `https://api.themoviedb.org/3/search/movie`
+    const movieQueryPara = {
+      api_key: MOVIE_API_KEY,
+      query: searchQuery
+    };
+    superagent.get(url).query(movieQueryPara).then((movieData) => {
+      const moviesList = movieData.body.results.map((movie) => {
+        return new Movie(movie)
+      })
+
+      res.status(200).send(moviesList.slice(0, 21));
     })
-   
-    res.status(200).send(newMovie);
-  })
+  } catch (error) {
+    res.status(500).send('internal movies server error occured')
+  }
+}
+// Yelp handler and constructor
+
+function Yelp(dataYelp) {
+  this.name = dataYelp.name;
+  this.image_url = dataYelp.image_url;
+  this.price = dataYelp.price;
+  this.rating = dataYelp.rating;
+  this.url = dataYelp.url;
 }
 
-
-
 // function handleYelpReq(req,res) {
-//   const searchQuery = req.query.city;
+//   const searchQuery = req.query.location;
 //   if (!searchQuery) {
 //     res.status(500).send('Sorry, something went wrong')
 //   }
-//   const url = `https://api.yelp.com/v3/businesses/search`,
-//   const restaurantQueryPara ={
-//   categories:'restaurants',
-//   location: searchQuery
-//   }
+//   const url = `https://api.yelp.com/v3/businesses/search`;
+//   const restaurantQueryPara={
+//   location: searchQuery,
+//   categories:'restaurants'};
 //   // API
 //   superagent
 //   .get(url).query(restaurantQueryPara).set(`Authorization`,`Bearer ${YELP_API_KEY}`).then((yelpData) => {
-//     const newYelp = new Yelp(searchQuery, yelpData);
-//     res.status(200).send(newYelp);
+//     const businessesList = yelpData.body.businesses.map((business) => {
+//       return new Yelp(business)
+//     })
+//     res.status(200).send(businessesList.slice(0,21));
 //   })
 //   .catch((error) => {
-//     res.status(500).send('Sorry, something went wrong');
+//     res.status(500).send('Sorry, BBsomething went wrong');
 //   });
 // }
- 
-// function Yelp(searchQuery,dataYelp) {
-//   this.name = ;
-//   this.image_url =;
-//   this.price =;
-//   this.rating = ;
-//   this.url = ;
-// } 
 
+// Pagination
+function handleYelpReq(req, res) {
+  try {
+    const searchQuery = req.query.location;
+    const page = req.query.page;
+    let limitPara = parseInt(page) * 5;
+    let i = limitPara - 5;
+
+    if (!searchQuery || !page) {
+      res.status(500).send('Sorry, something went wrong')
+    }
+
+    const url = `https://api.yelp.com/v3/businesses/search`;
+    // given that the offset increases by the limit everytime 
+    const restaurantQueryPara = {
+      location: searchQuery,
+      categories: 'restaurants',
+      limit: limitPara
+      // offset: 0
+    };
+    // API
+    superagent
+      .get(url).query(restaurantQueryPara).set(`Authorization`, `Bearer ${YELP_API_KEY}`).then((yelpData) => {
+        const businessesList = yelpData.body.businesses.map((business) => {
+          return new Yelp(business)
+        })
+        res.status(200).send(businessesList.slice(i, i + 6));
+      })
+  } catch (error) {
+    res.status(500).send('internal yelp server error occured');
+  }
+}
 
 // app listener
 cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
-
 
 // General/All Error Handler
 function allError(req, res) {
@@ -255,10 +304,3 @@ function allError(req, res) {
 }
 
 cityApp.use('*', allError);
-
-
-
-
-  
-
-
