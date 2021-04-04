@@ -1,4 +1,4 @@
--- DROP TABLE locations;
+DROP TABLE locations;
  
 CREATE TABLE IF NOT EXISTS
 locations(
