@@ -240,27 +240,27 @@ function Yelp(dataYelp) {
   this.url = dataYelp.url;
 }
 
-// function handleYelpReq(req,res) {
-//   const searchQuery = req.query.location;
-//   if (!searchQuery) {
-//     res.status(500).send('Sorry, something went wrong')
-//   }
-//   const url = `https://api.yelp.com/v3/businesses/search`;
-//   const restaurantQueryPara={
-//   location: searchQuery,
-//   categories:'restaurants'};
-//   // API
-//   superagent
-//   .get(url).query(restaurantQueryPara).set(`Authorization`,`Bearer ${YELP_API_KEY}`).then((yelpData) => {
-//     const businessesList = yelpData.body.businesses.map((business) => {
-//       return new Yelp(business)
-//     })
-//     res.status(200).send(businessesList.slice(0,21));
-//   })
-//   .catch((error) => {
-//     res.status(500).send('Sorry, BBsomething went wrong');
-//   });
-// }
+function handleYelpReq(req,res) {
+  const searchQuery = req.query.location;
+  if (!searchQuery) {
+    res.status(500).send('Sorry, something went wrong')
+  }
+  const url = `https://api.yelp.com/v3/businesses/search`;
+  const restaurantQueryPara={
+  location: searchQuery,
+  categories:'restaurants'};
+  // API
+  superagent
+  .get(url).query(restaurantQueryPara).set(`Authorization`,`Bearer ${YELP_API_KEY}`).then((yelpData) => {
+    const businessesList = yelpData.body.businesses.map((business) => {
+      return new Yelp(business)
+    })
+    res.status(200).send(businessesList.slice(0,21));
+  })
+  .catch((error) => {
+    res.status(500).send('Sorry, BBsomething went wrong');
+  });
+}
 
 // Pagination
 function handleYelpReq(req, res) {
