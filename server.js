@@ -54,6 +54,7 @@ function Location(searchQuery, dataLocation) {
   this.latitude = dataLocation.lat;
 }
 
+
 function getDataFromAPI() {
   const url = `https://us1.locationiq.com/v1/search.php`;
   const locationQueryPara = {
@@ -105,6 +106,65 @@ function handleLocationReq(req, res) {
     res.status(500).send('Sorry, something went wrong')
   }
 }
+  
+
+  
+function handleMoviesReq(req,res) {
+  const searchQuery = req.query.city;
+  if (!searchQuery) {
+    res.status(500).send('Sorry, something went wrong')
+  }
+  const url = `https://api.themoviedb.org/3/search/movie?`
+  const movieQueryPara {
+    query: searchQuery,
+    key: MOVIE_API_KEY,
+    // language:
+    // region:
+  }
+  superagent.get(url).query(movieQueryPara).then((movieData) => {
+    const newMovie = new Movie(searchQuery, movieData);
+    res.status(200).send(newMovie);
+  })
+}
+function Movie(searchQuery,dataMovie) {
+  this.title = dataMovie.results[0].title ;
+  this.overview = dataMovie.results[0].overview;
+  this.average_votes = dataMovie.results[0].average_votes;
+  this.total_votes = dataMovie.results[0].total_votes;
+  this.image_url = dataMovie.results[0].image_url;
+  this.popularity = dataMovie.results[0].popularity;
+  this.released_on = dataMovie.results[0].released_on;
+}
+
+
+function handleYelpReq(req,res) {
+  const searchQuery = req.query.city;
+  if (!searchQuery) {
+    res.status(500).send('Sorry, something went wrong')
+  }
+  const url = `GET https://api.yelp.com/v3/businesses/search`,
+  const restaurantQueryPara {
+  categories:'restaurants',
+  location: searchQuery
+  }
+  // API
+  superagent
+  .get(url).query(restaurantQueryPara).set('Authorization':'Bearer ',`${YELP_API_KEY}`).then((yelpData) => {
+    const newYelp = new Yelp(searchQuery, yelpData);
+    res.status(200).send(newYelp);
+  })
+  .catch((error) => {
+    res.status(500).send('Sorry, something went wrong');
+  });
+}
+ 
+function Yelp(searchQuery,dataYelp) {
+  this.name = ;
+  this.image_url =;
+  this.price =;
+  this.rating = ;
+  this.url = ;
+} 
 
 // Weather Request Handler Function + Constructor Function 
 
