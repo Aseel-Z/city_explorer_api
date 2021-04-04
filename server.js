@@ -21,6 +21,7 @@ const PARK_CODE_API_KEY = process.env.PARK_CODE_API_KEY;
 const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 const YELP_API_KEY = process.env.YELP_API_KEY;
 
+
 // express wireframe - app launch
 const cityApp = express();
 cityApp.use(cors());
@@ -292,15 +293,19 @@ function handleYelpReq(req, res) {
       })
   } catch (error) {
     res.status(500).send('internal yelp server error occured');
+
   }
 }
 
 // app listener
 cityApp.listen(PORT, () => console.log(`Listening to Port ${PORT}`));
 
+
 // General/All Error Handler
 function allError(req, res) {
   res.status(500).send('Sorry, something went wrong');
 }
 
+
 cityApp.use('*', allError);
+
